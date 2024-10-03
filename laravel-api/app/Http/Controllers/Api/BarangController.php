@@ -11,15 +11,23 @@ use App\Models\JenisBarang;
 
 class BarangController extends Controller
 {
-
-
-
     public function index(Request $request)
     {
         $query = Barang::with(['jenisBarang', 'transaksi']);
 
         if ($request->has('search')) {
-            $query->whereRaw('LOWER(nama) LIKE ?', ['%' . strtolower($request->search) . '%']);
+            $searchTerms = explode(',', $request->search);
+
+            foreach ($searchTerms as $term) {
+                $term = trim($term);
+                if (strtotime($term)) {
+                    $query->whereHas('transaksi', function ($q) use ($term) {
+                        $q->whereDate('tanggal_transaksi', $term);
+                    });
+                } else { // Asumsi term adalah nama
+                    $query->whereRaw('LOWER(nama) LIKE ?', ['%' . strtolower($term) . '%']);
+                }
+            }
         }
 
         if ($request->has('sort')) {
@@ -32,6 +40,7 @@ class BarangController extends Controller
 
         return response()->json($query->get());
     }
+
 
 
 

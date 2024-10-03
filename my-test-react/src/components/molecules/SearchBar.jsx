@@ -1,15 +1,12 @@
 import React from 'react';
-import { TextField, Button, Box } from '@mui/material';
+import Input from '../atoms/Input';
+import Button from '../atoms/Button';
 
-const SearchBar = ({ value, onChange, onSearch }) => {
-  return (
-    <Box display="flex" alignItems="center" gap={2} mb={2}>
-      <TextField variant="outlined" placeholder="Cari barang..." value={value} onChange={onChange} size="small" fullWidth />
-      <Button variant="contained" color="primary" onClick={onSearch} size="small">
-        Cari
-      </Button>
-    </Box>
-  );
-};
+const SearchBar = ({ value, onChange, onSearch }) => (
+  <div style={{ display: 'flex', gap: '1rem' }}>
+    <Input placeholder="Cari barang..." value={value} onChange={onChange} />
+    <Button onClick={onSearch}>Cari</Button>
+  </div>
+);
 
 export default SearchBar;
