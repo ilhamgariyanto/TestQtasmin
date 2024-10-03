@@ -1,4 +1,3 @@
-// src/pages/FormTambahBarang.js
 import React, { useState, useEffect } from 'react';
 import { TextField, Button, MenuItem, Select, InputLabel, FormControl, Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';

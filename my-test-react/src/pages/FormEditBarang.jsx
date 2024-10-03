@@ -1,4 +1,3 @@
-// src/pages/FormEditBarang.js
 import React, { useState, useEffect } from 'react';
 import { TextField, Button, MenuItem, Select, InputLabel, FormControl, Box, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -12,6 +11,8 @@ const FormEditBarang = () => {
   const [jenisBarangs, setJenisBarangs] = useState([]);
   const [jumlahTerjual, setJumlahTerjual] = useState('');
   const [tanggalTransaksi, setTanggalTransaksi] = useState('');
+  const [transaksiId, setTransaksiId] = useState(null); // ID transaksi
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,12 +28,25 @@ const FormEditBarang = () => {
     const fetchBarang = async () => {
       try {
         const response = await Api.get(`/api/barang/${id}`);
-        const { nama, stok, jenis_barang_id, jumlah_terjual, tanggal_transaksi } = response.data;
-        setNama(nama);
-        setStok(stok);
-        setJenisBarangId(jenis_barang_id);
-        setJumlahTerjual(jumlah_terjual);
-        setTanggalTransaksi(tanggal_transaksi);
+        const { nama, stok, jenis_barang_id, transaksi } = response.data;
+
+        // Set nilai barang
+        setNama(nama || '');
+        setStok(stok || '');
+        setJenisBarangId(jenis_barang_id || '');
+
+        // Jika ada transaksi, set nilai transaksi
+        if (transaksi && transaksi.length > 0) {
+          const latestTransaksi = transaksi[0]; // Jika ada beberapa transaksi, ambil yang terbaru
+          setJumlahTerjual(latestTransaksi.jumlah_terjual?.toString() || '');
+          setTanggalTransaksi(latestTransaksi.tanggal_transaksi || '');
+          setTransaksiId(latestTransaksi.id); // Simpan id transaksi
+        } else {
+          // Jika tidak ada transaksi
+          setJumlahTerjual('');
+          setTanggalTransaksi('');
+          setTransaksiId(null);
+        }
       } catch (error) {
         console.error('Error fetching barang:', error);
       }
@@ -52,12 +66,14 @@ const FormEditBarang = () => {
     }
 
     try {
+      // Kirim data untuk update barang dan transaksi
       await Api.put(`/api/barang/${id}`, {
         nama,
         stok,
         jenis_barang_id: jenisBarangId,
         jumlah_terjual: jumlahTerjual,
         tanggal_transaksi: tanggalTransaksi,
+        transaksi_id: transaksiId, // Kirim ID transaksi yang ada
       });
       alert('Data Barang Berhasil Diperbarui!');
       navigate('/');

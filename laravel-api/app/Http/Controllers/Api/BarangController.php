@@ -69,30 +69,47 @@ class BarangController extends Controller
 
     public function update(Request $request, $id)
     {
-
+        // Validasi data input
         $validatedData = $request->validate([
             'nama' => 'required|string|max:255',
             'stok' => 'required|integer',
             'jenis_barang_id' => 'required|exists:jenis_barang,id',
             'jumlah_terjual' => 'nullable|integer',
             'tanggal_transaksi' => 'nullable|date',
+            'transaksi_id' => 'nullable|exists:transaksi,id', // Menambahkan ID transaksi jika ada
         ]);
 
-
+        // Cari data barang berdasarkan ID
         $barang = Barang::findOrFail($id);
 
-
+        // Update data barang
         $barang->update($validatedData);
 
+        // Jika ada data transaksi (jumlah_terjual & tanggal_transaksi) dan transaksi_id disediakan
         if (isset($validatedData['jumlah_terjual']) && isset($validatedData['tanggal_transaksi'])) {
-            $transaksi = $barang->transaksi()->updateOrCreate(
-                ['tanggal_transaksi' => $validatedData['tanggal_transaksi']], // Kondisi untuk memperbarui
-                ['jumlah_terjual' => $validatedData['jumlah_terjual']] // Data yang diperbarui
-            );
+            // Cek jika ada transaksi_id yang dikirimkan
+            if (isset($validatedData['transaksi_id'])) {
+                // Update transaksi berdasarkan ID transaksi yang diberikan
+                $transaksi = $barang->transaksi()->where('id', $validatedData['transaksi_id'])->first();
+                if ($transaksi) {
+                    $transaksi->update([
+                        'jumlah_terjual' => $validatedData['jumlah_terjual'],
+                        'tanggal_transaksi' => $validatedData['tanggal_transaksi']
+                    ]);
+                }
+            } else {
+                // Jika tidak ada transaksi_id, buat transaksi baru
+                $transaksi = $barang->transaksi()->updateOrCreate(
+                    ['tanggal_transaksi' => $validatedData['tanggal_transaksi']],
+                    ['jumlah_terjual' => $validatedData['jumlah_terjual']]
+                );
+            }
         }
 
+        // Kembalikan respons berhasil
         return new ApiResource(true, 'Data Barang Berhasil Diperbarui!', $barang);
     }
+
 
 
     public function destroy($id)
